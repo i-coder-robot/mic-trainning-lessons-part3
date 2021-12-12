@@ -13,3 +13,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+/.idea/*
+/go.sum
+/biz/nacos/cache/config/stock.json*
+/nacos/cache/config/stock.json*
