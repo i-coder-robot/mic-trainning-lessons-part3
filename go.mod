@@ -7,8 +7,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/consul/api v1.11.0
-	github.com/i-coder-robot/mic-trainning-lessons v0.0.0-20211204125101-289ecc3c06c6
-	github.com/i-coder-robot/mic-trainning-lessons-part2 v0.0.0-20211205120723-e4db064adb1a
 	github.com/nacos-group/nacos-sdk-go v1.0.9
 	github.com/spf13/viper v1.9.0
 	go.uber.org/zap v1.19.1
