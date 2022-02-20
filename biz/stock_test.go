@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/internal"
+	"github.com/i-coder-robot/mic-trainning-lessons-part3/model"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/proto/pb"
 	"google.golang.org/grpc"
 	"sync"
@@ -95,5 +96,24 @@ func TestStockServer_BackStock(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(res)
+}
 
+func TestCreateStockItemDetail(t *testing.T) {
+	item := model.StockItemDetail{
+		OrderNo: "123456789",
+		Status:  model.HasSell,
+		DetailList: []model.ProductDetail{
+			{ProductId: 1, Num: 6},
+			{ProductId: 2, Num: 8},
+		},
+	}
+	internal.DB.Save(&item)
+}
+func TestFindStockItemDetail(t *testing.T) {
+	var itemDetail model.StockItemDetail
+
+	internal.DB.Model(model.StockItemDetail{}).Where(model.StockItemDetail{
+		OrderNo: "123456789",
+	}).First(&itemDetail)
+	fmt.Println(itemDetail)
 }
