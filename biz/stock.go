@@ -7,6 +7,7 @@ import (
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/internal"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/model"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/proto/pb"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"sync"
 )
@@ -44,22 +45,31 @@ var m sync.Mutex
 
 func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty, error) {
 	tx := internal.DB.Begin()
-	m.Lock() //为了防止并发安全，加入互斥锁，但是性能差，要用分布式锁，解决这个问题
-	defer m.Unlock()
 	for _, item := range req.StockItemList {
 		var stock model.Stock
-		r := internal.DB.Where("product_id=?", item.ProductId).First(&stock)
-		if r.RowsAffected == 0 {
-			tx.Rollback()
-			return nil, errors.New(custom_error.ProductNotFound)
+		for {
+			r := internal.DB.Where("product_id=?", item.ProductId).First(&stock)
+			if r.RowsAffected == 0 {
+				tx.Rollback()
+				return nil, errors.New(custom_error.StockNotFound)
+			}
+			if stock.Num < item.Num {
+				tx.Rollback()
+				return nil, errors.New(custom_error.StockNotEnough)
+			}
+			stock.Num -= item.Num
+			r = tx.Where(&model.Stock{}).Select("num").Where("product_id=? and version=?", item.ProductId, stock.Version).Updates(
+				model.Stock{
+					Num:     stock.Num,
+					Version: stock.Version + 1,
+				},
+			)
+			if r.RowsAffected == 0 {
+				zap.S().Infof("库存扣减失败")
+			} else {
+				break
+			}
 		}
-		if stock.Num < item.Num {
-			tx.Rollback()
-			return nil, errors.New(custom_error.StockNotEnough)
-		}
-		stock.Num -= item.Num
-		//stock.Num=stock.Num-item.Num
-		tx.Save(&stock)
 	}
 	tx.Commit()
 	return &emptypb.Empty{}, nil
@@ -78,7 +88,7 @@ func (s StockServer) BackStock(ctx context.Context, req *pb.SellItem) (*emptypb.
 		r := internal.DB.Where("product_id=?", item.ProductId).First(&stock)
 		if r.RowsAffected < 1 {
 			tx.Rollback()
-			return nil, errors.New(custom_error.ProductNotFound)
+			return nil, errors.New(custom_error.StockNotFound)
 		}
 		stock.Num += item.Num
 		tx.Save(&stock)
