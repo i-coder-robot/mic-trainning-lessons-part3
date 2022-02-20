@@ -67,7 +67,7 @@ func TestStockServer_Sell(t *testing.T) {
 			var itemList []*pb.ProductStockItem
 			item := &pb.ProductStockItem{
 				ProductId: 1,
-				Num:       10,
+				Num:       1,
 			}
 			itemList = append(itemList, item)
 			sellItem := &pb.SellItem{
@@ -96,6 +96,7 @@ func TestStockServer_BackStock(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(res)
+
 }
 
 func TestCreateStockItemDetail(t *testing.T) {

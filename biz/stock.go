@@ -9,7 +9,6 @@ import (
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/proto/pb"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"sync"
 )
 
 type StockServer struct {
@@ -41,8 +40,6 @@ func (s StockServer) StockDetail(ctx context.Context, req *pb.ProductStockItem) 
 	return &stockPb, nil
 }
 
-var m sync.Mutex
-
 func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty, error) {
 	tx := internal.DB.Begin()
 	for _, item := range req.StockItemList {
@@ -58,14 +55,14 @@ func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty
 				return nil, errors.New(custom_error.StockNotEnough)
 			}
 			stock.Num -= item.Num
-			r = tx.Where(&model.Stock{}).Select("num").Where("product_id=? and version=?", item.ProductId, stock.Version).Updates(
+			r = tx.Where(&model.Stock{}).Select("num").Where("product_id=? and version=?",
+				item.ProductId, stock.Version).Updates(
 				model.Stock{
 					Num:     stock.Num,
 					Version: stock.Version + 1,
-				},
-			)
+				})
 			if r.RowsAffected == 0 {
-				zap.S().Infof("库存扣减失败")
+				zap.S().Info("库存扣减失败")
 			} else {
 				break
 			}

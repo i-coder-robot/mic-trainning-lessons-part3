@@ -17,3 +17,7 @@
 /go.sum
 /biz/nacos/cache/config/stock.json*
 /nacos/cache/config/stock.json*
+/biz/nacos/log/nacos-sdk.log
+/nacos/log/nacos-sdk.log
+/biz/nacos/log/nacos-sdk.log-202112142100
+/nacos/log/nacos-sdk.log-202112142100
