@@ -3,11 +3,11 @@ package biz
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/custom_error"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/internal"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/model"
 	"github.com/i-coder-robot/mic-trainning-lessons-part3/proto/pb"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -41,31 +41,31 @@ func (s StockServer) StockDetail(ctx context.Context, req *pb.ProductStockItem) 
 }
 
 func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty, error) {
+	//之前的视频，一定要搞清楚
+	//面试必问，mutex锁-》悲观锁-》乐观锁-》分布式锁,重要，重要，重要！
 	tx := internal.DB.Begin()
 	for _, item := range req.StockItemList {
 		var stock model.Stock
-		for {
-			r := internal.DB.Where("product_id=?", item.ProductId).First(&stock)
-			if r.RowsAffected == 0 {
-				tx.Rollback()
-				return nil, errors.New(custom_error.StockNotFound)
-			}
-			if stock.Num < item.Num {
-				tx.Rollback()
-				return nil, errors.New(custom_error.StockNotEnough)
-			}
-			stock.Num -= item.Num
-			r = tx.Where(&model.Stock{}).Select("num").Where("product_id=? and version=?",
-				item.ProductId, stock.Version).Updates(
-				model.Stock{
-					Num:     stock.Num,
-					Version: stock.Version + 1,
-				})
-			if r.RowsAffected == 0 {
-				zap.S().Info("库存扣减失败")
-			} else {
-				break
-			}
+
+		mutex := internal.Redsync.NewMutex(fmt.Sprintf("product_%d", item.ProductId))
+		err := mutex.Lock()
+		if err != nil {
+			return nil, errors.New(custom_error.RedisLockErr)
+		}
+		r := internal.DB.Where("product_id=?", item.ProductId).First(&stock)
+		if r.RowsAffected == 0 {
+			tx.Rollback()
+			return nil, errors.New(custom_error.StockNotFound)
+		}
+		if stock.Num < item.Num {
+			tx.Rollback()
+			return nil, errors.New(custom_error.StockNotEnough)
+		}
+		stock.Num -= item.Num
+		tx.Save(&stock)
+		ok, err := mutex.Unlock()
+		if !ok || err != nil {
+			return nil, errors.New(custom_error.StockNotEnough)
 		}
 	}
 	tx.Commit()
