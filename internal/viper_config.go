@@ -3,6 +3,9 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	goredislib "github.com/go-redis/redis/v8"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v8"
 	"github.com/nacos-group/nacos-sdk-go/clients"
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/vo"
@@ -10,8 +13,11 @@ import (
 	"os"
 )
 
-var AppConf AppConfig
-var NacosConf NacosConfig
+var (
+	AppConf   AppConfig
+	NacosConf NacosConfig
+	Redsync   *redsync.Redsync
+)
 
 //var fileName = "dev-config.yaml"
 
@@ -76,4 +82,11 @@ func init() {
 	fmt.Println("初始化完成...")
 	InitRedis()
 	InitDB()
+
+	redisAddr := fmt.Sprintf("%s:%d", AppConf.RedisConfig.Host, AppConf.RedisConfig.Port)
+	client := goredislib.NewClient(&goredislib.Options{
+		Addr: redisAddr,
+	})
+	pool := goredis.NewPool(client)
+	Redsync = redsync.New(pool)
 }
