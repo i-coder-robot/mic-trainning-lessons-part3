@@ -21,3 +21,6 @@
 /nacos/log/nacos-sdk.log
 /biz/nacos/log/nacos-sdk.log-202112142100
 /nacos/log/nacos-sdk.log-202112142100
+/distributed_lock/nacos/log/nacos-sdk.log-202202211100
+/nacos/log/nacos-sdk.log-202202211300
+/distributed_lock/nacos/log/nacos-sdk.log

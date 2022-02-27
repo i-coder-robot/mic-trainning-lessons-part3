@@ -110,6 +110,7 @@ func TestCreateStockItemDetail(t *testing.T) {
 	}
 	internal.DB.Save(&item)
 }
+
 func TestFindStockItemDetail(t *testing.T) {
 	var itemDetail model.StockItemDetail
 
