@@ -41,6 +41,7 @@ func InitDB() {
 	DB, err = gorm.Open(mysql.Open(conn), &gorm.Config{
 		Logger: newLogger,
 		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   "happy_",
 			SingularTable: true, //表明用英文单数形式
 		},
 	})
