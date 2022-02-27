@@ -20,4 +20,5 @@ message ProductStockItem{
 
 message SellItem{
   repeated ProductStockItem stockItemList=1;
+  string orderNo=2;
 }
