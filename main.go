@@ -29,7 +29,7 @@ func main() {
 		zap.S().Error(err)
 		panic(err)
 	}
-	if !internal.AppConf.Debug {
+	if internal.AppConf.Debug {
 		port = internal.AppConf.StockSrvConfig.Port
 	}
 	addr := fmt.Sprintf("%s:%d", internal.AppConf.StockSrvConfig.Host, port)
