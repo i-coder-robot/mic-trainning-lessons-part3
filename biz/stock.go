@@ -44,6 +44,11 @@ func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty
 	//之前的视频，一定要搞清楚
 	//面试必问，mutex锁-》悲观锁-》乐观锁-》分布式锁,重要，重要，重要！
 	tx := internal.DB.Begin()
+	stockDetail := model.StockItemDetail{
+		OrderNo: req.OrderNo, //修改proto文件，增加OrderNo
+		Status:  model.HasSell,
+	}
+	var sellList model.ProductDetailList
 	for _, item := range req.StockItemList {
 		var stock model.Stock
 
@@ -67,6 +72,16 @@ func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty
 		if !ok || err != nil {
 			return nil, errors.New(custom_error.StockNotEnough)
 		}
+		sellList = append(sellList, model.ProductDetail{
+			ProductId: item.ProductId,
+			Num:       item.Num,
+		})
+	}
+	stockDetail.DetailList = sellList
+	r := tx.Create(&stockDetail)
+	if r.RowsAffected == 0 {
+		tx.Rollback()
+		return nil, errors.New("stockDetail")
 	}
 	tx.Commit()
 	return &emptypb.Empty{}, nil
