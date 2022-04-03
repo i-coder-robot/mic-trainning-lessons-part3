@@ -84,9 +84,9 @@ func (s StockServer) Sell(ctx context.Context, req *pb.SellItem) (*emptypb.Empty
 	}
 	stockDetail.DetailList = sellList
 	r := tx.Create(&stockDetail)
-	if r.RowsAffected == 0 {
+	if r.RowsAffected < 1 {
 		tx.Rollback()
-		return nil, errors.New("stockDetail")
+		return nil, errors.New(custom_error.CreateDetailErr)
 	}
 	tx.Commit()
 	return &emptypb.Empty{}, nil
