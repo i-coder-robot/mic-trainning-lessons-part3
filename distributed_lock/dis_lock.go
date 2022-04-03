@@ -13,7 +13,7 @@ func RedisLock(wg *sync.WaitGroup) {
 	defer wg.Done()
 	//redisAddr := fmt.Sprintf("%s:%d",internal.AppConf.RedisConfig.Host,
 	//	internal.AppConf.RedisConfig.Port)
-	redisAddr := "192.168.0.108:6379"
+	redisAddr := "192.168.0.107:6379"
 	client := goredislib.NewClient(&goredislib.Options{
 		Addr: redisAddr,
 	})
