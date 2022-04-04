@@ -69,6 +69,7 @@ func main() {
 		consumer.WithGroupName("HappyStockGroup"),
 	)
 	pushConsumer.Subscribe("Happy_BackStockTopic", consumer.MessageSelector{}, biz.BackStock)
+	pushConsumer.Start()
 
 	err = server.Serve(listen)
 	if err != nil {
