@@ -130,9 +130,10 @@ func BackStock(ctx context.Context, messageExt ...*primitive.MessageExt) (consum
 			zap.S().Error("Unmarshal Error:" + err.Error())
 			return consumer.ConsumeSuccess, nil
 		}
+		fmt.Printf("OrderNo:%s", order.OrderNo)
 		tx := internal.DB.Begin()
 		var detail model.StockItemDetail
-		r := tx.Where(&model.StockItemDetail{
+		r := tx.Model(model.StockItemDetail{}).Where(&model.StockItemDetail{
 			OrderNo: order.OrderNo,
 			Status:  model.HasSell,
 		}).First(&detail)
@@ -140,7 +141,7 @@ func BackStock(ctx context.Context, messageExt ...*primitive.MessageExt) (consum
 			return consumer.ConsumeSuccess, nil
 		}
 		for _, item := range detail.DetailList {
-			ret := tx.Model(&model.Stock{ProductId: item.ProductId}).Update(
+			ret := tx.Model(model.Stock{}).Where(&model.Stock{ProductId: item.ProductId}).Update(
 				"num", gorm.Expr("num+?", item.Num),
 			)
 			if ret.RowsAffected < 1 {

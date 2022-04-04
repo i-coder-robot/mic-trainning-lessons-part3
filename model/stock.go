@@ -25,7 +25,7 @@ func (p ProductDetailList) Value() (driver.Value, error) {
 	return json.Marshal(p)
 }
 
-func (p ProductDetailList) Scan(value interface{}) error {
+func (p *ProductDetailList) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), &p)
 }
 
